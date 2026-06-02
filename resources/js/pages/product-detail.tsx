@@ -3,6 +3,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, MessageCircle, ShoppingCart } fro
 import { useState } from 'react'
 import { CONTACT_INFO } from '../constants'
 import { useCartStore } from '../store/useCartStore'
+import { ProductImageModal } from '../components/ProductImageModal'
 
 const WHATSAPP_NUMBER = CONTACT_INFO.whatsapp.value
 
@@ -25,6 +26,10 @@ interface ProductDetailProps {
 export default function ProductDetail({ product, relatedProducts = [] }: ProductDetailProps) {
   const { addItem } = useCartStore()
   const [carouselIndex, setCarouselIndex] = useState(0)
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalImageIndex, setModalImageIndex] = useState(0)
   
   const handleWhatsAppBuy = () => {
     const message = encodeURIComponent(`Bonjour REPOWER SARL, je souhaite acheter le produit suivant : ${product.title}`)
@@ -107,12 +112,21 @@ return [photos];
             <div className="flex flex-col gap-4">
               {/* Main Image */}
               {primaryImage ? (
-                <div className="relative w-full overflow-hidden rounded-xl border border-outline-variant bg-surface-container dark:border-outline dark:bg-[#252b2e]">
+                <div 
+                  className="relative w-full overflow-hidden rounded-xl border border-outline-variant bg-surface-container cursor-pointer transition-all hover:border-secondary dark:border-outline dark:bg-[#252b2e]"
+                  onClick={() => {
+                    setModalImageIndex(0)
+                    setIsModalOpen(true)
+                  }}
+                >
                   <img
                     alt={product.title}
                     src={primaryImage}
                     className="h-[400px] w-full object-contain p-8"
                   />
+                  <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity">
+                    Cliquer pour agrandir
+                  </div>
                 </div>
               ) : (
                 <div className="flex h-[400px] items-center justify-center rounded-xl border border-outline-variant bg-surface-container dark:border-outline dark:bg-[#252b2e]">
@@ -126,7 +140,11 @@ return [photos];
                   {photosList.slice(0, 4).map((photo, index) => (
                     <button
                       key={index}
-                      className="h-24 w-24 overflow-hidden rounded-lg border-2 border-transparent transition-colors hover:border-secondary"
+                      className="h-24 w-24 overflow-hidden rounded-lg border-2 border-transparent transition-all hover:border-secondary"
+                      onClick={() => {
+                        setModalImageIndex(index)
+                        setIsModalOpen(true)
+                      }}
                     >
                       <img
                         alt={`${product.title} - Image ${index + 1}`}
@@ -360,6 +378,15 @@ return [photos];
             </div>
           )}
         </div>
+
+        {/* Product Image Modal */}
+        <ProductImageModal
+          images={photosList}
+          initialIndex={modalImageIndex}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          productTitle={product.title}
+        />
       </main>
     </>
   )

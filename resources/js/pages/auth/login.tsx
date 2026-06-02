@@ -152,7 +152,7 @@ export default function Login({ status, canResetPassword }: Props) {
             </div>
 
             {/* Pied de page (Lien d'inscription style Shadcn) */}
-            <div className="text-center text-sm text-muted-foreground">
+            <div className="text-center text-sm text-muted-foreground hidden">
                 Vous n'avez pas de compte ?{' '}
                 <TextLink 
                     href={register()} 

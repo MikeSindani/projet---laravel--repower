@@ -12,7 +12,6 @@ import {
   MessageCircle,
   Phone,
   Settings2,
-  Share2,
   ShieldCheck,
   ShoppingCart,
   SunMedium,
@@ -497,6 +496,51 @@ const getProductPhotos = (photos: DbProduct['photos']): string[] => {
 
 export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
   const { items, clearCart } = useQuoteStore()
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    projectType: 'Résidentiel',
+    message: ''
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Construire le message WhatsApp
+    const whatsappMessage = `
+Nouveau message depuis le site web REPOWER-DRC:
+
+Nom: ${formData.name}
+Email: ${formData.email}
+Téléphone: ${formData.phone}
+Type de projet: ${formData.projectType}
+Message: ${formData.message}
+
+Ce client souhaite être contacté pour plus d'informations.
+    `.trim()
+
+    // Ouvrir WhatsApp avec le message
+    const whatsappUrl = `https://wa.me/${CONTACT_INFO.whatsapp.value}?text=${encodeURIComponent(whatsappMessage)}`
+    window.open(whatsappUrl, '_blank')
+
+    // Réinitialiser le formulaire
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      projectType: 'Résidentiel',
+      message: ''
+    })
+  }
 
   const displayProducts: DisplayProduct[] = dbProducts
     .filter((p) => p.active !== false)
@@ -820,16 +864,20 @@ export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
               <p className="mb-10 text-on-surface-variant dark:text-gray-400">
                 Prêt à passer à l&apos;énergie solaire ? Notre équipe est à votre disposition pour toute question ou demande de devis.
               </p>
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div>
                     <label className="mb-2 block text-sm font-bold text-primary dark:text-white">
                       Nom Complet
                     </label>
                     <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
                       className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500"
                       placeholder="Votre nom"
                       type="text"
+                      required
                     />
                   </div>
                   <div>
@@ -837,9 +885,13 @@ export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
                       Email
                     </label>
                     <input
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500"
                       placeholder="votre@email.com"
                       type="email"
+                      required
                     />
                   </div>
                 </div>
@@ -849,16 +901,26 @@ export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
                       Téléphone
                     </label>
                     <input
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
                       className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500"
                       placeholder="Votre numéro de téléphone"
-                      type="text"
+                      type="tel"
+                      required
                     />
                   </div>
                   <div>
                     <label className="mb-2 block text-sm font-bold text-primary dark:text-white">
                       Type de Projet
                     </label>
-                    <select className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500">
+                    <select
+                      name="projectType"
+                      value={formData.projectType}
+                      onChange={handleInputChange}
+                      className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500"
+                      required
+                    >
                       <option>Résidentiel</option>
                       <option>Industriel / Minier</option>
                       <option>Commercial</option>
@@ -872,17 +934,24 @@ export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
                     Message
                   </label>
                   <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
                     className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest p-3 focus:border-primary focus:ring-primary dark:border-gray-700 dark:bg-[#252b2e] dark:text-white dark:focus:border-orange-500"
                     placeholder="Décrivez votre besoin..."
                     rows={4}
+                    required
                   />
                 </div>
                 <button
                   className="w-full rounded-full py-4 font-bold text-on-primary transition-all hover:bg-primary-container"
-                  style={{ backgroundColor: 'var(--color-secondary, #ff8a65)', color: 'white' }}
+                  style={{ backgroundColor: '#25D366', color: 'white' }}
                   type="submit"
                 >
-                  Envoyer la demande
+                  <span className="flex items-center justify-center gap-2">
+                    <MessageCircle size={20} />
+                    Envoyer la demande via WhatsApp
+                  </span>
                 </button>
               </form>
             </div>
@@ -916,10 +985,13 @@ export default function Welcome({ products: dbProducts = [] }: WelcomeProps) {
               <div className="flex gap-4">
                 <a
                   className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white transition-all hover:bg-secondary"
-                  style={{ backgroundColor: 'var(--color-secondary, #ff8a65)' }}
-                  href="#"
+                  style={{ backgroundColor: '#25D366' }}
+                  href={`https://wa.me/${CONTACT_INFO.whatsapp.value}?text=${encodeURIComponent('Bonjour, je suis intéressé par vos services d\'installation solaire.')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Contacter via WhatsApp"
                 >
-                  <Share2 size={18} />
+                  <MessageCircle size={18} />
                 </a>
                 <a
                   className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white transition-all hover:bg-secondary"
